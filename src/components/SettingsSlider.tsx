@@ -28,4 +28,10 @@ export const SettingsSlider = ({settings, setSettings, settingsKey, min, max, di
 
 const LongInput = styled.input`
     width: 300px;
+
+    // For consistency with Safari.
+    ::-webkit-slider-runnable-track {
+        background-color: #222;
+        border-radius: 10px;
+    }
 `;

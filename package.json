@@ -3,7 +3,7 @@
     "description": "A highly customizable online version of Towers of Hanoi, where the controls are optimized for speed. Featuring a precise timer, high score tracker, and blindfold mode.",
     "repository": "https://github.com/DotEye/Towers-Of-Hanoi-Speedrun-Edition",
     "author": "DotEye <github@doteye.online>",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "license": "GNU GPLv3",
     "private": true,
     "dependencies": {

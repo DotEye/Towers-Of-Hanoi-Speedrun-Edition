@@ -21,21 +21,23 @@ export const share = async (startTime: number, endTime: number, numMoves: number
     );
 
 export const shareText = async (text: string) => {
-    if (isMobileOrTablet() && navigator.share) {
-        try {
-            await navigator.share({
-                title: 'Towers of Hanoi - Speedrun Edition',
-                text,
-            })
-        } catch {
-            await copyToClipboard(text);
-        }
-    } else {
-        await copyToClipboard(text);
-    }
+    // If on mobile, try share first and fall back to copy.
+    // If not on mobile, try copy first and fall back to share.
+    if (isMobileOrTablet())
+        try { await navigatorShare(text); }
+        catch { await copyToClipboard(text); }
+    else
+        try { await copyToClipboard(text); }
+        catch { await navigatorShare(text); }
 };
 
-export const copyToClipboard = async (text: string) => new Promise((resolve, reject) =>
+const navigatorShare = async (text: string) =>
+    await navigator.share({
+        title: 'Towers of Hanoi - Speedrun Edition',
+        text,
+    });
+
+const copyToClipboard = async (text: string) => new Promise((resolve, reject) =>
     navigator.clipboard.writeText(text).then(resolve).catch(() => {
         alert('Sharing failed or was cancelled.');
         reject();

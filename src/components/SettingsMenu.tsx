@@ -18,9 +18,10 @@ interface Props {
     resetSettings: () => void;
     moves: Moves;
     endTime: number | null;
+    close: () => void;
 }
 
-export const SettingsMenu = ({settings, setSettings, resetGame, resetSettings, moves, endTime}: Props) => {
+export const SettingsMenu = ({settings, setSettings, resetGame, resetSettings, moves, endTime, close}: Props) => {
     const disabled = moves.length > 0 && !endTime;
 
     const highScore = getHighScore(settings);
@@ -109,6 +110,9 @@ export const SettingsMenu = ({settings, setSettings, resetGame, resetSettings, m
                     Estimated time for an expert player: {estimatedTime(settings)}
                 </div>
             </Bottom>
+            <CloseWrapper>
+                <Button onClick={() => close()}>Close</Button>
+            </CloseWrapper>
             {settings.stacks < 3 && settings.disks > 1 &&
                 <Warning>Warning: Game is impossible. Increase number of stacks or decrease number of disks.</Warning>
             }
@@ -132,4 +136,9 @@ const RightAligned = styled.td`
 const Bottom = styled.div`
     display: flex;
     gap: 5px;
+`;
+
+const CloseWrapper = styled.div`
+    text-align: center;
+    margin-top: 10px;
 `;

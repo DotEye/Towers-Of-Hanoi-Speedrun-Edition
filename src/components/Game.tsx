@@ -195,7 +195,8 @@ export const Game = () => {
                 resetSettings={resetSettings}
                 resetGame={resetGame}
                 moves={moves}
-                endTime={endTime} />}
+                endTime={endTime}
+                close={() => setSettingsShown(false)} />}
             {startTime && endTime && <Win moves={moves} settings={settings} startTime={startTime} endTime={endTime} timeDifference={timeDifference} />}
 
             {settings.blindfold && <Blindfold>[blindfold enabled]</Blindfold>}
@@ -207,6 +208,7 @@ export const Game = () => {
                             key={key}
                             width={stackWidth}
                             showPeg={settings.showPegs}
+                            numDisks={settings.disks}
                         >
                             {stack.map((index, key) => <Disk key={key} $width={getWidth(index)} $height={diskHeight} $color={getColor(index)}>{settings.diskNumbers ? index : <>&nbsp;</>}</Disk>)}
                         </Stack>

@@ -34,9 +34,10 @@ export const Info = ({onClose, settings}: Props) =>
         <p><strong>Note</strong>: Super fast controls are designed for 3 stack games.
             These key binds can be customized in the settings.</p>
         <Footer>
+            <span><Button onClick={onClose}>Close</Button></span>
             <span>Made with ♥ by <Link href="https://doteye.online">.i</Link></span>
-            <Button onClick={onClose}>Close</Button>
             <span>Join the <Link href="https://discord.gg/tykwEuuYCt">Discord</Link></span>
+            <span><Link href="https://doteye.online/privacy">Privacy Policy</Link></span>
         </Footer>
     </Menu>;
 

@@ -5,8 +5,9 @@ export const Button = styled.button`
     color: white;
     border: 2px solid white;
     padding: 10px;
-    
-    :focus {
+
+    :focus-visible {
+        border-style: dashed;
         outline: none;
     }
     

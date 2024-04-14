@@ -2,6 +2,7 @@ export const defaultSettings = {
     disks: 3,
     stacks: 3,
     startStack: 1,
+    anyEndStack: true,
     endStack: 3,
     showPegs: true,
     diskNumbers: false,

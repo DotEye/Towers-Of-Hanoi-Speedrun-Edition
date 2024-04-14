@@ -39,12 +39,22 @@ export const SettingsMenu = ({settings, setSettings, resetGame, resetSettings, m
                     </tr>
                     <tr>
                         <td><SettingsSlider disabled={disabled} settings={settings} setSettings={setSettings} settingsKey="startStack" resetGame={resetGame} min={1} max={settings.stacks} /></td>
-                        <td>Start Stack ({Math.min(settings.startStack, settings.stacks)})</td>
+                        <td>Start stack ({Math.min(settings.startStack, settings.stacks)})</td>
                     </tr>
                     <tr>
-                        <td><SettingsSlider disabled={disabled} settings={settings} setSettings={setSettings} settingsKey="endStack" resetGame={resetGame} min={1} max={settings.stacks} /></td>
-                        <td>End Stack ({Math.min(settings.endStack, settings.stacks)})</td>
+                        <RightAligned><input type="checkbox" disabled={disabled} checked={settings.anyEndStack} onChange={event => {
+                            const newSettings = {...settings, anyEndStack: event.target.checked};
+                            setSettings(newSettings);
+                            resetGame(newSettings);
+                        }}/></RightAligned>
+                        <td>Any end stack</td>
                     </tr>
+                    {!settings.anyEndStack && (
+                        <tr>
+                            <td><SettingsSlider disabled={disabled || settings.anyEndStack} settings={settings} setSettings={setSettings} settingsKey="endStack" resetGame={resetGame} min={1} max={settings.stacks} /></td>
+                            <td>End stack ({Math.min(settings.endStack, settings.stacks)})</td>
+                        </tr>
+                    )}
                     <tr>
                         <RightAligned><input type="checkbox" disabled={disabled} checked={settings.illegalMoves} onChange={event => {
                             const newSettings = {...settings, illegalMoves: event.target.checked};
@@ -115,6 +125,9 @@ export const SettingsMenu = ({settings, setSettings, resetGame, resetSettings, m
             </CloseWrapper>
             {settings.stacks < 3 && settings.disks > 1 &&
                 <Warning>Warning: Game is impossible. Increase number of stacks or decrease number of disks.</Warning>
+            }
+            {settings.startStack === settings.endStack &&
+                <Warning>Warning: Game is impossible. Set the end stack to be different from the start stack or enable "Any end stack".</Warning>
             }
             {disabled &&
                 <Warning>Some settings are disabled because a game is in progress. Reset the game to enable them.</Warning>

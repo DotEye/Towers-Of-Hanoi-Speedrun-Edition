@@ -27,7 +27,8 @@ export const SettingsMenu = ({settings, setSettings, resetGame, resetSettings, m
     const highScore = getHighScore(settings);
     return (
         <Menu title="Settings">
-            <table>
+            {/* Without removeAllRanges, slides become disabled when selected https://stackoverflow.com/questions/69459333 */}
+            <table onMouseDown={() => window.getSelection()?.removeAllRanges()}>
                 <tbody>
                     <tr>
                         <td><SettingsSlider disabled={disabled} settings={settings} setSettings={setSettings} settingsKey="disks" resetGame={resetGame} min={1} max={30} /></td>
@@ -126,7 +127,7 @@ export const SettingsMenu = ({settings, setSettings, resetGame, resetSettings, m
             {settings.stacks < 3 && settings.disks > 1 &&
                 <Warning>Warning: Game is impossible. Increase number of stacks or decrease number of disks.</Warning>
             }
-            {settings.startStack === settings.endStack &&
+            {!settings.anyEndStack && settings.startStack === settings.endStack &&
                 <Warning>Warning: Game is impossible. Set the end stack to be different from the start stack or enable "Any end stack".</Warning>
             }
             {disabled &&

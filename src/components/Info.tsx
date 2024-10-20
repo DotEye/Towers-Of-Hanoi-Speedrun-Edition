@@ -35,9 +35,26 @@ export const Info = ({onClose, settings}: Props) =>
             These key binds can be customized in the settings.</p>
         <Footer>
             <span><Button onClick={onClose}>Close</Button></span>
-            <span>Made with ♥ by <Link href="https://doteye.online">.i</Link></span>
             <span>Join the <Link href="https://discord.gg/tykwEuuYCt">Discord</Link></span>
             <span><Link href="https://doteye.online/privacy">Privacy Policy</Link></span>
+            <Link href="https://doteye.online">
+                <DotEye width="72" height="72">
+                    <filter id="glow">
+                        <feTurbulence type="turbulence" numOctaves="1" result="turbulence">
+                            <animate attributeName="baseFrequency" dur="10s" values="0.1; 0.025; 0.1" repeatCount="indefinite" />
+                        </feTurbulence>
+                        <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="5" />
+                    </filter>
+                    <g transform="translate(12, 12)">
+                        <rect x="-5" y="-5" width="48" height="48" className="eye-background" fill="#ffffffbf" />
+                        <rect x="-5" y="1" width="48" height="48" className="eye-background" fill="#ffffffbf" />
+                        <rect x="1" y="-5" width="48" height="48" className="eye-background" fill="#ffffffbf" />
+                        <rect x="1" y="1" width="48" height="48" className="eye-background" fill="#ffffffbf" />
+                    </g>
+                    <rect x="12" y="12" width="48" height="48" fill="#d07e9e" />
+                    <rect x="20" y="20" width="12" height="12" fill="#1a2b3d" />
+                </DotEye>
+            </Link>
         </Footer>
     </Menu>;
 
@@ -54,5 +71,17 @@ const Footer = styled.div`
     span {
         flex-grow: 1;
         text-align: center;
+    }
+`;
+
+const DotEye = styled.svg`
+    transition: 350ms;
+
+    :hover {
+        transform: scale(1.1);
+    }
+
+    .eye-background {
+        filter: url(#glow) blur(1px);
     }
 `;

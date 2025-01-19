@@ -31,7 +31,7 @@ const frameStewart = (disks: number, stacks: number) => {
 };
 
 export const optimalMoves = (settings: Settings) => {
-    if (settings.startStack === settings.endStack) return 0;
+    if (!settings.anyEndStack && settings.startStack === settings.endStack) return 0;
     if (settings.illegalMoves && !(settings.stacks < 3 && settings.disks > 1)) return settings.disks * 2 - 1;
     return frameStewartMemo(settings.disks, settings.stacks);
 };

@@ -17,7 +17,7 @@ export const share = async (startTime: number, endTime: number, numMoves: number
         (numMoves === numOptimalMoves ? '\n✨ Optimal solution' : '') +
         (settings.blindfold ? '\n🙈 Blindfolded' : '') +
         (settings.illegalMoves ? '\n🚨 Illegal moves' : '') +
-        (settings.startStack === settings.endStack ? '\n😞 Cheater' : '')
+        (!settings.anyEndStack && settings.startStack === settings.endStack ? '\n😞 Cheater' : '')
     );
 
 export const shareText = async (text: string) => {

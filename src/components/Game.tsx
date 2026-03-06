@@ -15,22 +15,67 @@ import {MAX_DISK_HEIGHT, MIN_DISK_WIDTH_INCREMENT, TOP_DISK_MARGIN} from '../uti
 
 export const Game = () => {
     const [stacks, setStacks] = useState([[0]]);
-    const [holding, setHolding] = useState<{width: number, from: number} | null>(null);
+    const [holding, setHolding] = useState<{
+        width: number;
+        from: number;
+    } | null>(null);
     const [moves, setMoves] = useState<Moves>([]);
     const [startTime, setStartTime] = useState<number | null>(null);
     const [endTime, setEndTime] = useState<number | null>(null);
-    const [settings, setSettings] = useState(defaultSettings);
+    const [settings, setSettings] = useState<Settings>(() => {
+        const rawSettings = window.localStorage.getItem('settings');
+        if (rawSettings) {
+            try {
+                return JSON.parse(rawSettings);
+            } catch (e) {}
+        }
+        return defaultSettings;
+    });
     const [settingsShown, setSettingsShown] = useState(false);
-    const [infoShown, setInfoShown] = useState(true);
+    const [infoShown, setInfoShown] = useState(() => !window.localStorage.getItem('settings'));
     const [timeDifference, setTimeDifference] = useState(0);
     const [, rerender] = useState(0);
 
     const stacksRef = useRef<HTMLDivElement>(null);
+    const stateRef = useRef({
+        stacks,
+        holding,
+        moves,
+        startTime,
+        endTime,
+        timeDifference,
+    });
+
+    useEffect(() => {
+        stateRef.current = {
+            stacks,
+            holding,
+            moves,
+            startTime,
+            endTime,
+            timeDifference,
+        };
+    }, [stacks, holding, moves, startTime, endTime, timeDifference]);
+
+    useEffect(() => {
+        const saveProgress = () => {
+            window.localStorage.setItem('progress', JSON.stringify(stateRef.current));
+        };
+        const interval = setInterval(saveProgress, 3000);
+        window.addEventListener('beforeunload', saveProgress);
+        return () => {
+            clearInterval(interval);
+            window.removeEventListener('beforeunload', saveProgress);
+        };
+    }, []);
 
     const resetGame = useCallback((newSettings: Settings) => {
         const stacks = [];
         for (let i = 0; i < newSettings.stacks; ++i) stacks.push([]);
-        stacks[Math.min(newSettings.startStack, newSettings.stacks) - 1] = Array.from({length: newSettings.disks}, (_, i) => i + 1);
+        stacks[Math.min(newSettings.startStack, newSettings.stacks) - 1] = Array.from(
+            {length: newSettings.disks},
+            (_, i) => i + 1,
+        );
         setStacks(stacks);
 
         setHolding(null);
@@ -72,7 +117,7 @@ export const Game = () => {
 
     const onKeyDown = (event: KeyboardEvent) => {
         const key = event.key.toLowerCase();
-        if (key === settings.keyReset) {
+        if (key === settings.keyReset && !event.ctrlKey) {
             resetGame(settings);
             return;
         }
@@ -93,7 +138,7 @@ export const Game = () => {
             newStacks[to].unshift(disk);
             setStacks(newStacks);
             checkForWin();
-        }
+        };
         if (!holding) {
             if (key === settings.keyBind21) move(1, 0);
             else if (key === settings.keyBind12) move(0, 1);
@@ -116,10 +161,14 @@ export const Game = () => {
             if (holding.from !== numberKey) setMoves(moves.concat([{from: holding.from, to: numberKey}]));
             checkForWin();
         } else {
-            setHolding(stacks[numberKey][0] ? {
-                width: stacks[numberKey][0],
-                from: numberKey,
-            } : null);
+            setHolding(
+                stacks[numberKey][0]
+                    ? {
+                          width: stacks[numberKey][0],
+                          from: numberKey,
+                      }
+                    : null,
+            );
             if (moves.length === 0) setStartTime(Date.now());
 
             const newStacks = [...stacks];
@@ -135,7 +184,7 @@ export const Game = () => {
         if (!stacksRef.current) return 0;
         const maxWidth = (stacksRef.current.firstChild as HTMLDivElement).offsetWidth;
         return settings.disks * MIN_DISK_WIDTH_INCREMENT > maxWidth
-            ? size / settings.disks * maxWidth
+            ? (size / settings.disks) * maxWidth
             : size * MIN_DISK_WIDTH_INCREMENT;
     };
 
@@ -149,24 +198,35 @@ export const Game = () => {
         return () => {
             document.removeEventListener('keydown', onKeyDown);
             window.removeEventListener('resize', resize);
-        }
+        };
     });
 
     // Resize once after initial page load and when settings change.
     useEffect(resize, [settings]);
 
-    // Load settings on initial page load.
+    // Load progress on initial page load.
     useEffect(() => {
-        const rawSettings = window.localStorage.getItem('settings');
-        if (rawSettings) {
-            const newSettings = JSON.parse(rawSettings);
-            setInfoShown(false);
-            setSettings(newSettings);
-            resetGame(newSettings);
-            return;
+        const rawProgress = window.localStorage.getItem('progress');
+        if (rawProgress) {
+            try {
+                const progress = JSON.parse(rawProgress);
+                setStacks(progress.stacks);
+                setHolding(progress.holding);
+                setMoves(progress.moves);
+                setStartTime(progress.startTime);
+                setEndTime(progress.endTime);
+                setTimeDifference(progress.timeDifference ?? 0);
+                return;
+            } catch (e) {
+                console.error('Failed to parse saved progress', e);
+            }
         }
-        resetGame(defaultSettings);
-    }, [resetGame]);
+
+        resetGame(settings);
+
+        // This should only be run once, so the dependencies are intentionally empty.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Save settings on change.
     useEffect(() => {
@@ -187,32 +247,52 @@ export const Game = () => {
                 undo={undo}
                 reset={resetGame}
                 toggleSettings={() => setSettingsShown(!settingsShown)}
-                toggleInfo={() => setInfoShown(!infoShown)} />
+                toggleInfo={() => setInfoShown(!infoShown)}
+            />
             {infoShown && <Info onClose={() => setInfoShown(false)} settings={settings} />}
-            {settingsShown && <SettingsMenu
-                settings={settings}
-                setSettings={setSettings}
-                resetSettings={resetSettings}
-                resetGame={resetGame}
-                moves={moves}
-                endTime={endTime}
-                close={() => setSettingsShown(false)} />}
-            {startTime && endTime && <Win moves={moves} settings={settings} startTime={startTime} endTime={endTime} timeDifference={timeDifference} />}
+            {settingsShown && (
+                <SettingsMenu
+                    settings={settings}
+                    setSettings={setSettings}
+                    resetSettings={resetSettings}
+                    resetGame={resetGame}
+                    moves={moves}
+                    endTime={endTime}
+                    close={() => setSettingsShown(false)}
+                />
+            )}
+            {startTime && endTime && (
+                <Win
+                    moves={moves}
+                    settings={settings}
+                    startTime={startTime}
+                    endTime={endTime}
+                    timeDifference={timeDifference}
+                />
+            )}
 
             {settings.blindfold && <Blindfold>[blindfold enabled]</Blindfold>}
             <Main blindfold={settings.blindfold}>
-                {holding && <Disk $width={getWidth(holding.width)} $height={diskHeight} $color={getColor(holding.width)} $holding>{settings.diskNumbers ? holding.width : <>&nbsp;</>}</Disk>}
+                {holding && (
+                    <Disk
+                        $width={getWidth(holding.width)}
+                        $height={diskHeight}
+                        $color={getColor(holding.width)}
+                        $holding
+                    >
+                        {settings.diskNumbers ? holding.width : <>&nbsp;</>}
+                    </Disk>
+                )}
                 <Stacks ref={stacksRef}>
-                    {stacks.map((stack, key) =>
-                        <Stack
-                            key={key}
-                            width={stackWidth}
-                            showPeg={settings.showPegs}
-                            numDisks={settings.disks}
-                        >
-                            {stack.map((index, key) => <Disk key={key} $width={getWidth(index)} $height={diskHeight} $color={getColor(index)}>{settings.diskNumbers ? index : <>&nbsp;</>}</Disk>)}
+                    {stacks.map((stack, key) => (
+                        <Stack key={key} width={stackWidth} showPeg={settings.showPegs} numDisks={settings.disks}>
+                            {stack.map((index, key) => (
+                                <Disk key={key} $width={getWidth(index)} $height={diskHeight} $color={getColor(index)}>
+                                    {settings.diskNumbers ? index : <>&nbsp;</>}
+                                </Disk>
+                            ))}
                         </Stack>
-                    )}
+                    ))}
                 </Stacks>
             </Main>
         </>
@@ -228,7 +308,7 @@ const Stacks = styled.div`
 `;
 
 const Main = styled.main<{blindfold: boolean}>`
-    visibility: ${p => p.blindfold ? 'hidden' : 'unset'};
+    visibility: ${p => (p.blindfold ? 'hidden' : 'unset')};
 `;
 
 const Blindfold = styled.h1`
